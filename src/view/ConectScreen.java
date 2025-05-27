@@ -1,6 +1,7 @@
 package view;
 
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.text.MaskFormatter;
 
 import utils.FontLoader;
@@ -18,9 +19,10 @@ public class ConectScreen extends JPanel{
 	private JButton buttonServer;
 	private JButton buttonClient;
 	private JLabel labelCommand;
-	private JLabel labelIPAddress;
 	private JFormattedTextField textFieldIPInput;
 	private JButton buttonConect;
+	private JTextField textFieldNameInput;
+	private JButton buttonStartChat;
 	
 	public ConectScreen() {
 		setSize(600, 500);
@@ -29,9 +31,10 @@ public class ConectScreen extends JPanel{
 		add(getButtonServer());
 		add(getButtonClient());
 		add(getLabelCommand());
-		add(getLabelIPAddress());
 		add(getIpInput());
 		add(getButtonConect());
+		add(getButtonStartChat());
+		add(getNameInput());
 	}
 	
 	public JPanel getPanelTitle() {
@@ -86,16 +89,6 @@ public class ConectScreen extends JPanel{
 		}
 		return labelCommand;
 	}
-	public JLabel getLabelIPAddress() {
-		if (labelIPAddress == null) {
-			labelIPAddress = new JLabel("Seu endereço: ");
-			labelIPAddress.setFont(FontLoader.loadCustomFont(30f));
-			labelIPAddress.setBounds(0, 225, 600, 49);
-			labelIPAddress.setHorizontalAlignment(JLabel.CENTER);
-			labelIPAddress.setVisible(false);
-		}
-		return labelIPAddress;
-	}
 	public JFormattedTextField getIpInput() {
 		if(textFieldIPInput == null) {
 			MaskFormatter mask = null;
@@ -120,7 +113,7 @@ public class ConectScreen extends JPanel{
 	}
 	public JButton getButtonConect() {
 		if(buttonConect == null) {
-			buttonConect = new JButton("Iniciar conexão");
+			buttonConect = new JButton("Estabelecer conexão");
 			buttonConect.setToolTipText("Tenta conectar em outro computador como cliente");
 			buttonConect.setForeground(Color.WHITE);
 			buttonConect.setFont(FontLoader.loadCustomFont(30f));
@@ -130,5 +123,28 @@ public class ConectScreen extends JPanel{
 			buttonConect.setVisible(false);
 		}
 		return buttonConect;
+	}
+	public JTextField getNameInput() {
+		if(textFieldNameInput == null) {
+			textFieldNameInput = new JTextField();
+			textFieldNameInput.setFont(FontLoader.loadCustomFont(25f));
+			textFieldNameInput.setToolTipText("Esse nome será exibido para o outro usuário");
+			textFieldNameInput.setBounds(137, 213, 323, 65);
+			textFieldNameInput.setHorizontalAlignment(JTextField.CENTER);
+			textFieldNameInput.setVisible(false);
+		}
+		return textFieldNameInput;
+	}
+	public JButton getButtonStartChat() {
+		if(buttonStartChat == null) {
+			buttonStartChat = new JButton("Iniciar Chat");
+			buttonStartChat.setToolTipText("Envia o seu nome e inicia a conversa");
+			buttonStartChat.setForeground(Color.WHITE);
+			buttonStartChat.setFont(FontLoader.loadCustomFont(30f));
+			buttonStartChat.setBackground(new Color(76, 175, 80));
+			buttonStartChat.setBounds(137, 312, 323, 65);
+			buttonStartChat.setVisible(false);
+		}
+		return buttonStartChat;
 	}
 }

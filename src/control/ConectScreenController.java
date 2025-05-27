@@ -2,13 +2,16 @@ package control;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -18,6 +21,14 @@ import view.ConectScreen;
 public class ConectScreenController implements ActionListener {
 	
 	ConectScreen conectScreen;
+	String localIP;
+	String targetIP;
+	String localUserName;
+	String targetUserName;
+	Socket socket;
+	BufferedReader reader;
+	PrintWriter writer;
+
 	
 	public ConectScreenController(ConectScreen conectScreen) {
 		this.conectScreen = conectScreen;
@@ -28,6 +39,7 @@ public class ConectScreenController implements ActionListener {
 		conectScreen.getButtonServer().addActionListener(this);
 		conectScreen.getButtonClient().addActionListener(this);
 		conectScreen.getButtonConect().addActionListener(this);
+		conectScreen.getButtonStartChat().addActionListener(this);
 		
 		conectScreen.getIpInput().getDocument().addDocumentListener(new DocumentListener() {
 		    private void checkIPComplete() {
@@ -65,6 +77,10 @@ public class ConectScreenController implements ActionListener {
 		else if(e.getSource() == conectScreen.getButtonConect()) {
 			conect();
 		}
+		else if (e.getSource() == conectScreen.getButtonStartChat()) {
+		    getUserNames();
+		}
+
 		
 		conectScreen.repaint();
 	}
@@ -73,28 +89,22 @@ public class ConectScreenController implements ActionListener {
 		conectScreen.getButtonServer().setVisible(false);
 		conectScreen.getButtonClient().setVisible(false);
 		conectScreen.getLabelCommand().setText("Aguarde a conexão");
-		conectScreen.getLabelIPAddress().setVisible(true);
-		
-		String ip;
-		try {
-			ip = InetAddress.getLocalHost().getHostAddress();
-			conectScreen.getLabelIPAddress().setText("Seu endereço: " + ip);
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 		// Cria uma nova thread para não travar a interface
 	    new Thread(() -> {
 	        try (ServerSocket serverSocket = new ServerSocket(50018)) {
 	            System.out.println("Aguardando cliente...");
-	            Socket cliente = serverSocket.accept(); // Esta linha bloqueia!
+	            socket = serverSocket.accept(); // Esta linha bloqueia!
 
-	            // Quando o cliente conectar, atualizamos a interface com segurança:
 	            SwingUtilities.invokeLater(() -> {
-	                System.out.println("Cliente conectado: " + cliente.getInetAddress());
+	                System.out.println("Cliente conectado: " + socket.getInetAddress());
 	                conectScreen.getLabelCommand().setText("Cliente conectado!");
-	                // Aqui você pode abrir a tela de chat ou mudar de estado
+	                targetIP = socket.getInetAddress().getHostAddress();
+	                localIP = socket.getLocalAddress().getHostAddress();
+	                System.out.println("ip local: "+localIP);
+	                System.out.println("ip alvo: "+targetIP);
+	                
+	                requestUsername();
 	            });
 
 	        } catch (IOException e) {
@@ -120,15 +130,81 @@ public class ConectScreenController implements ActionListener {
 		
 		try {
             conectScreen.getLabelCommand().setText("Tentando conectar ao servidor em " + serverIp + ":" + serverPort);
-            Socket socket = new Socket(serverIp, serverPort);
+            socket = new Socket(serverIp, serverPort);
             conectScreen.getLabelCommand().setText("Conectado com sucesso ao servidor!");
-            socket.close();
+            targetIP = socket.getInetAddress().getHostAddress();
+            localIP = socket.getLocalAddress().getHostAddress();
+            System.out.println("ip local: "+localIP);
+            System.out.println("ip alvo: "+targetIP);
+            
+            requestUsername();
         } catch (UnknownHostException e) {
             System.err.println("IP inválido: " + e.getMessage());
         } catch (IOException e) {
             System.err.println("Erro ao conectar: " + e.getMessage());
         }
 	}
+	
+	private void requestUsername() {
+		conectScreen.getIpInput().setVisible(false);
+		conectScreen.getButtonConect().setVisible(false);
+		conectScreen.getLabelCommand().setText("Digite o seu nome para iniciar a conversa!");
+		conectScreen.getButtonStartChat().setVisible(true);
+		conectScreen.getNameInput().setVisible(true);
+	}
+	
+	private void getUserNames() {
+	    if (conectScreen.getNameInput().getText().isBlank()) {
+	        JOptionPane.showMessageDialog(null, "Você precisa digitar um nome!", "Erro, nome em branco", JOptionPane.WARNING_MESSAGE);
+	    }
+	    else {
+	    	localUserName = conectScreen.getNameInput().getText();
+	    	conectScreen.getButtonStartChat().setVisible(false);
+	    	conectScreen.getNameInput().setVisible(false);
+	    	conectScreen.getLabelCommand().setText("Aguardanado o nome do outro usuário...");
+	    	
+	        try {
+	            writer = new PrintWriter(socket.getOutputStream(), true);
+	            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+	            // Sends local user's name
+	            writer.println(localUserName);
+
+	            new Thread(() -> {
+	                try {
+	                	// Receives the name of the other user
+	                    targetUserName = reader.readLine();
+
+	                    System.out.println("Meu nome: " + localUserName);
+	                    System.out.println("Nome do outro usuário: " + targetUserName);
+
+	                    SwingUtilities.invokeLater(() -> {
+	                        conectScreen.getLabelCommand().setText("Conectado com " + targetUserName + "!");
+	                    });
+	                    
+	                    try {
+							Thread.sleep(2500);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+	                    
+	                    //Esperando o código da tela de chat...
+
+	                } catch (IOException e) {
+	                    e.printStackTrace();
+	                    SwingUtilities.invokeLater(() -> {
+	                        conectScreen.getLabelCommand().setText("Erro ao receber o nome do usuário.");
+	                    });
+	                }
+	            }).start();
+
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            conectScreen.getLabelCommand().setText("Erro ao trocar nomes.");
+	        }
+	    }
+	}
+
 	
 	public static void main(String[] args) {
 		// sets up frame
