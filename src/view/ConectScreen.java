@@ -49,10 +49,10 @@ public class ConectScreen extends JPanel{
 	}
 	public JLabel getLabelTitle() {
 		if (labelTitle == null) {
-			labelTitle = new JLabel("Web Chat");
+			labelTitle = new JLabel("LAN Chat");
 			labelTitle.setForeground(new Color(255, 255, 255));
 			labelTitle.setFont(FontLoader.loadCustomFont(30f));
-			labelTitle.setBounds(231, 29, 138, 42);
+			labelTitle.setBounds(234, 29, 132, 42);
 		}
 		return labelTitle;
 	}

@@ -16,10 +16,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import view.ChatScreen;
 import view.ConectScreen;
 
 public class ConectScreenController implements ActionListener {
 	
+	JFrame frame;
 	ConectScreen conectScreen;
 	String localIP;
 	String targetIP;
@@ -30,8 +32,9 @@ public class ConectScreenController implements ActionListener {
 	PrintWriter writer;
 
 	
-	public ConectScreenController(ConectScreen conectScreen) {
+	public ConectScreenController(ConectScreen conectScreen, JFrame frame) {
 		this.conectScreen = conectScreen;
+		this.frame = frame;
 		addListeners();
 	}
 	
@@ -189,6 +192,9 @@ public class ConectScreenController implements ActionListener {
 						}
 	                    
 	                    //Esperando o código da tela de chat...
+	                    ChatScreen chatScreen = new ChatScreen();
+	                    new ChatScreenController(frame, chatScreen, localUserName, targetUserName, socket);
+	                    frame.setContentPane(chatScreen);
 
 	                } catch (IOException e) {
 	                    e.printStackTrace();
@@ -204,22 +210,4 @@ public class ConectScreenController implements ActionListener {
 	        }
 	    }
 	}
-
-	
-	public static void main(String[] args) {
-		// sets up frame
-		JFrame frame = new JFrame();
-		frame.setSize(600, 500);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
-		frame.setResizable(false);
-		frame.setVisible(true);
-		
-		// starts up the conection screen
-		ConectScreen cs = new ConectScreen();
-		new ConectScreenController(cs);
-		frame.add(cs);
-		frame.repaint();
-	}
-
 }
